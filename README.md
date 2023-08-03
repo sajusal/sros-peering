@@ -118,7 +118,7 @@ In this example, we are configuring the connector to use a 1x100G breakout.
 The status of the port can be viewed using the below command:
 
 ```
-A:admin@SR1# /show port
+A:admin@SR1# show port
 
 ===============================================================================
 Ports on Slot 1
