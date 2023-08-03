@@ -1,10 +1,10 @@
-# Nokia SROS Peering Configuration
+# Nokia SR OS Peering Configuration
 
 This page provides the basic step-by-step configuration required to set up a Nokia 7750 Service Router as a Peering router. All the required feature sets for a peering router are covered here with configuration and show examples. Most sections also provide links to Nokia documentation for further reading.
 
-All configurations are in MD-CLI flat format. Reference chassis is 7750 SR-1 and software version is SROS 23.7R1. Use `show system info` command to verify your router's chassis model and software version.
+All configurations are in MD-CLI flat format. Reference chassis is 7750 SR-1 and software version is SR OS 23.7R1. Use `show system info` command to verify your router's chassis model and software version.
 
-Disclaimer: This is not an exhaustive list of all the features and associated options on SROS for peering. For more details on the features and options, please refer to the documentation links in each section.
+Disclaimer: This is not an exhaustive list of all the features and associated options on SR OS for peering. For more details on the features and options, please refer to the documentation links in each section.
 
 # Topology
 
@@ -16,7 +16,7 @@ In this topology, the 7750 SR router is connected to a FRR peer and 2 Route serv
 
 # Switching to MD-CLI
 
-Starting SROS release 23, all new routers will default to MD-CLI on boot up. In case you are using an older release and need to switch to MD-CLI, please use the below commands which will enable MD-CLI, Netconf and gNMI on the router. For more details on MD-CLI, visit [SROS MD-CLI Guide](https://documentation.nokia.com/sr/23-7-1/titles/md-cli-command-reference.html#undefined).
+Starting SR OS release 23, all new routers will default to MD-CLI on boot up. In case you are using an older release and need to switch to MD-CLI, please use the below commands which will enable MD-CLI, Netconf and gNMI on the router. For more details on MD-CLI, visit [SR OS MD-CLI Guide](https://documentation.nokia.com/sr/23-7-1/titles/md-cli-command-reference.html#undefined).
 
 
 From Classic CLI run:
@@ -46,9 +46,9 @@ commit
 
 # User and Profile Management
 
-SROS supports local, TACACS, Radius or LDAP for Authentication, Authorization and Accounting (AAA). The below example shows local management.
+SR OS supports local, TACACS, Radius or LDAP for Authentication, Authorization and Accounting (AAA). The below example shows local management.
 
-For more details on AAA, visit [SROS AAA Documentation](https://documentation.nokia.com/sr/23-7-1/books/system-management/security-system-management.html#ai9exj5x89).
+For more details on AAA, visit [SR OS AAA Documentation](https://documentation.nokia.com/sr/23-7-1/books/system-management/security-system-management.html#ai9exj5x89).
 
 
 Configuring user profile:
@@ -173,7 +173,7 @@ Interfaces : 2
 
 OSPF or IS-IS will be required to connect with other routers within the same AS. In this example, we are configuring a OSPFv2 neighbor. Port and interface configuration is similar to what is shown in previous section.
 
-For more details on OSPF configuration, visit [SROS OSPF Documentation](https://documentation.nokia.com/sr/23-7-1/books/unicast-routing-protocols/ospf-unicast-routing-protocols.html).
+For more details on OSPF configuration, visit [SR OS OSPF Documentation](https://documentation.nokia.com/sr/23-7-1/books/unicast-routing-protocols/ospf-unicast-routing-protocols.html).
 
 ```
     /configure router "Base" ospf 0 admin-state enable
@@ -202,7 +202,7 @@ No. of Neighbors: 1
 
 IS-IS or OSPF will be required to connect with other routers within the same AS. In this example, we are configuring the router to be in IS-IS Level 2 and also enabled IPv6 native routing (the other option is MT). Port and interface configuration is similar to what is shown in previous section.
 
-For more details on IS-IS configuration, visit [SROS IS-IS Documentation](https://documentation.nokia.com/sr/23-7-1/books/unicast-routing-protocols/is-is-unicast-routing-protocols.html).
+For more details on IS-IS configuration, visit [SR OS IS-IS Documentation](https://documentation.nokia.com/sr/23-7-1/books/unicast-routing-protocols/is-is-unicast-routing-protocols.html).
 
 ```
     /configure router "Base" isis 0 admin-state enable
@@ -231,9 +231,9 @@ Adjacencies : 1
 
 # BGP
 
-In this example, we are peering with the OpenBGPd and BIRD route servers. Local AS on the SROS is 64501. Remote AS is 64503.
+In this example, we are peering with the OpenBGPd and BIRD route servers. Local AS on the SR OS is 64501. Remote AS is 64503.
 
-For more details on BGP configuration, visit [SROS BGP Documentation](https://documentation.nokia.com/sr/23-7-1/books/unicast-routing-protocols/bgp-unicast-routing-protocols.html).
+For more details on BGP configuration, visit [SR OS BGP Documentation](https://documentation.nokia.com/sr/23-7-1/books/unicast-routing-protocols/bgp-unicast-routing-protocols.html).
 
 ```
     /configure router "Base" autonomous-system 64501
@@ -345,7 +345,7 @@ Occupancy Threshold Alerts
 
 Routing policies control the size and content of the routing tables, the routes that are advertised, and the best route to take to reach a destination.
 
-For more details on route policy configuration and options, visit [SROS Route Policies Documentation](https://documentation.nokia.com/sr/23-7-1/books/unicast-routing-protocols/route-policies.html).
+For more details on route policy configuration and options, visit [SR OS Route Policies Documentation](https://documentation.nokia.com/sr/23-7-1/books/unicast-routing-protocols/route-policies.html).
 
 In these examples, we are creating AS path lists, community and prefix lists.
 
@@ -389,7 +389,7 @@ The policy can be applied as import or export under the BGP root, group or neigh
 
 Route policies can be tested and evaluated before they are applied to BGP.
 
-For more details and examples, visit [SROS MD-CLI Command Tree](https://documentation.nokia.com/aces/sr/23-7-1/cli-books/clear-monitor-show-tools-commands/cmst-p-commands.html#ai9j784l5l)
+For more details and examples, visit [SR OS MD-CLI Command Tree](https://documentation.nokia.com/aces/sr/23-7-1/cli-books/clear-monitor-show-tools-commands/cmst-p-commands.html#ai9j784l5l)
 
 ```
 A:admin@SR1# show router bgp policy-test plcy-or-long-expr "EXT-AS-IMPORT" family ipv4 prefix 0.0.0.0/0 longer neighbor 192.168.0.3
@@ -433,7 +433,7 @@ In this example, we have 3 entries. The 3rd entry will log and accept all unmatc
 
 In order to avoid getting locked out of the router while configuring CPM filters, it is recommended to use `commit confirm` when making changes.
 
-For more details on CPM filters, visit [SROS CPM Filter Documentation](https://documentation.nokia.com/sr/23-7-1/books/system-management/security-system-management.html#ai9exj5yai). Also, check out the [SROS Security Guide](https://documentation.nokia.com/aces/sr/23-7-1/titles/security.html).
+For more details on CPM filters, visit [SR OS CPM Filter Documentation](https://documentation.nokia.com/sr/23-7-1/books/system-management/security-system-management.html#ai9exj5yai). Also, check out the [SR OS Security Guide](https://documentation.nokia.com/aces/sr/23-7-1/titles/security.html).
 
 ```
  /configure filter match-list { ip-prefix-list "SNMP-Source" prefix 192.168.10.30/32 }
@@ -511,7 +511,7 @@ In this example, we have 3 entries. The 3rd entry will log and accept all unmatc
 
 In order to avoid getting locked out of the router while configuring Management Access Filters, it is recommended to use `commit confirm` when making changes.
 
-For more details on MAF, visit [SROS MAF Documentation](https://documentation.nokia.com/aces/sr/23-7-1/books/system-management/security-system-management.html#ai9exj5ybh).
+For more details on MAF, visit [SR OS MAF Documentation](https://documentation.nokia.com/aces/sr/23-7-1/books/system-management/security-system-management.html#ai9exj5ybh).
 
 ```
   /configure system security management-access-filter ip-filter { default-action drop }
@@ -581,7 +581,7 @@ Matches        : 1424
 
 Cflowd is a tool used to obtain samples of IPv4, IPv6, MPLS, and Ethernet traffic data flows through a router. 
 
-For more details on Cflowd, visit [SROS Cflowd Documentation](https://documentation.nokia.com/aces/sr/23-7-1/books/router-configuration/cflowd.html).
+For more details on Cflowd, visit [SR OS Cflowd Documentation](https://documentation.nokia.com/aces/sr/23-7-1/books/router-configuration/cflowd.html).
 
 ```
     /configure cflowd overflow 10
@@ -649,11 +649,11 @@ Version Status                   Sent                 Open               Errors
 
 # RPKI
 
-SROS supports RPKI for BGP prefix origin validation.
+SR OS supports RPKI for BGP prefix origin validation.
 
 In this example, we are configuring a RPKI session with an external server and then enabling prefix origin validation under the BGP group. We are also configuring BGP to not use any routes whose origin is invalid.
 
-For more details on RPKI implementation, visit [SROS RPKI Documentation](https://documentation.nokia.com/aces/sr/23-7-1/books/unicast-routing-protocols/bgp-unicast-routing-protocols.html#d497e11185).
+For more details on RPKI implementation, visit [SR OS RPKI Documentation](https://documentation.nokia.com/aces/sr/23-7-1/books/unicast-routing-protocols/bgp-unicast-routing-protocols.html#d497e11185).
 
 ```
     /configure router "Base" origin-validation rpki-session 172.31.1.2 { admin-state enable }
@@ -691,7 +691,7 @@ No. of Sessions    : 1
 
 FlowSpec is a standardized method for using BGP to distribute traffic flow specifications (flow routes) throughout a network. FlowSpec is supported for both IPv4 and IPv6.
 
-For more details on Flowspec implementation, visit [SROS Flowspec Documentation](https://documentation.nokia.com/aces/sr/23-7-1/books/unicast-routing-protocols/bgp-unicast-routing-protocols.html#ai9exj5yj3).
+For more details on Flowspec implementation, visit [SR OS Flowspec Documentation](https://documentation.nokia.com/aces/sr/23-7-1/books/unicast-routing-protocols/bgp-unicast-routing-protocols.html#ai9exj5yj3).
 
 ```
     /configure router "Base" bgp neighbor "192.168.0.3" { family ipv4 true }
@@ -742,7 +742,7 @@ No Match Criteria Found
 
 Unicast reverse path forwarding check (uRPF) helps to mitigate problems that are caused by the introduction of malformed or forged (spoofed) IP source addresses into a network by discarding IP packets that lack a verifiable IP source address. uRPF is supported for both IPv4 and IPv6 on network and access. 
 
-For more details on uRPF, visit [SROS uRPF Documentation](https://documentation.nokia.com/aces/sr/23-7-1/books/router-configuration/ip-router-configuration.html#d10e138).
+For more details on uRPF, visit [SR OS uRPF Documentation](https://documentation.nokia.com/aces/sr/23-7-1/books/router-configuration/ip-router-configuration.html#d10e138).
 
 ```
     /configure router "Base" interface "To-Peering-LAN" ipv4 { urpf-check mode loose }
@@ -753,7 +753,7 @@ For more details on uRPF, visit [SROS uRPF Documentation](https://documentation.
 
 ACL filter policies, also referred to as Access Control Lists (ACLs) or just ‟filters”, are sets of ordered rule entries specifying packet match criteria and actions to be performed to a packet upon a match. Filter policies are created with a unique filter ID and filter name. After the filter policy is created, the policy must then be associated with interfaces or services.
 
-For more details on ACL, visit [SROS ACL Documentation](https://documentation.nokia.com/aces/sr/23-7-1/books/router-configuration/filter-policies-router-configuration.html).
+For more details on ACL, visit [SR OS ACL Documentation](https://documentation.nokia.com/aces/sr/23-7-1/books/router-configuration/filter-policies-router-configuration.html).
 
 ```
 /configure filter match-list port-list "AS7xx-Ports" { port 179 }
@@ -856,7 +856,7 @@ In this example, we are re-directing packets based on source or destination ip m
 
 SR OS-based routers support configuring of IPv4 and IPv6 redirect policies. Redirect policies allow specifying multiple redirect target destinations and defining status check test methods used to validate the ability for a destination to receive redirected traffic.
 
-For more details on PBR implementation, visit [SROS PBR Documentation](https://documentation.nokia.com/aces/sr/23-7-1/books/router-configuration/filter-policies-router-configuration.html#ai9exj5xo0
+For more details on PBR implementation, visit [SR OS PBR Documentation](https://documentation.nokia.com/aces/sr/23-7-1/books/router-configuration/filter-policies-router-configuration.html#ai9exj5xo0
 
 ```
  /configure filter redirect-policy "FIREWALL-V4" admin-state enable
@@ -878,9 +878,9 @@ The filter is then applied to the interface.
 
 # QoS
 
-SROS implements QoS with a 4-step process – Classification, Queueing, Scheduling and (Re)Marking.
+SR OS implements QoS with a 4-step process – Classification, Queueing, Scheduling and (Re)Marking.
 
-For more details on QoS implementation, visit [SROS QoS Documentation](https://documentation.nokia.com/aces/sr/23-7-1/titles/qos.html).
+For more details on QoS implementation, visit [SR OS QoS Documentation](https://documentation.nokia.com/aces/sr/23-7-1/titles/qos.html).
 
 ## QoS - Classification
 
@@ -936,7 +936,7 @@ The queuing policy is applied under the FP context of the line card.
 
 ## QoS - Scheduling
 
-The example shows a simple port-based scheduler which typically meets the requirements for a Peering network. SROS also supports Hierarchical schedulers and Slope policies.
+The example shows a simple port-based scheduler which typically meets the requirements for a Peering network. SR OS also supports Hierarchical schedulers and Slope policies.
 
 ```
 /configure qos port-scheduler-policy "Peer-Scheduler" max-rate 100000000
@@ -977,7 +977,7 @@ The classification & re-marking policy is applied under the interface.
 
 # NTP
 
-In order to provide a complete router configuration, we will also show below the NTP configuration in SROS.
+In order to provide a complete router configuration, we will also show below the NTP configuration in SR OS.
 
 ```
 /configure system { time ntp admin-state enable }
@@ -992,10 +992,10 @@ The status of NTP can be seen using the `show system ntp all` command.
 
 # System Alarms and Logging
 
-SROS has default log-id 99 for all events and log-id 100 for events with severity Major and above. These logs can be read using the `show log log-id <id>` command.
+SR OS has default log-id 99 for all events and log-id 100 for events with severity Major and above. These logs can be read using the `show log log-id <id>` command.
 User defined logs can be created as shown below. Log destination options are File, Memory, Console, SNMP, Netconf or Syslog.
 
-For more details on logging, visit [SROS Log Documentation](https://documentation.nokia.com/aces/sr/23-7-1/books/system-management/event-account-logs.html).
+For more details on logging, visit [SR OS Log Documentation](https://documentation.nokia.com/aces/sr/23-7-1/books/system-management/event-account-logs.html).
 
 A user defined log can be created as below:
 
@@ -1030,9 +1030,9 @@ Memory usage can be monitored using the `show system memory-pools` command.
 
 # Optional - Configuration Groups
 
-SROS supports the creation of configuration templates called configuration groups which can be applied at different branches in the configuration using the apply-groups command. To view the expanded configuration, use the `info inherirance` command under the branch context.
+SR OS supports the creation of configuration templates called configuration groups which can be applied at different branches in the configuration using the apply-groups command. To view the expanded configuration, use the `info inherirance` command under the branch context.
 
-For more details on Config groups, visit [SROS Configuration Groups Documentation](https://documentation.nokia.com/sr/23-7-1/books/7x50-shared/md-cli-user/edit-configuration.html#unique_469766673).
+For more details on Config groups, visit [SR OS Configuration Groups Documentation](https://documentation.nokia.com/sr/23-7-1/books/7x50-shared/md-cli-user/edit-configuration.html#unique_469766673).
 
 In this example, we are creating an IS-IS configuration group for authentication and metric.
 
@@ -1069,15 +1069,15 @@ A:admin@sr101# info inheritance
     }
 ```
 
-# Optional - Custom CLI command using pySROS
+# Optional - Custom CLI command using pySR OS
 
-Custom python applications can be written to run on a SROS node that implements a MicroPython interpreter (version 3.4). One example of an application is a custom CLI command. The below sample configuration shows how to configure a python script get_all_interfaces.py (that will show all VRF interfaces and in/out packets in one output) to be used as a CLI command. For sample python scripts, visit [Nokia pysros GitHub](https://github.com/nokia/pysros).
+Custom python applications can be written to run on a SR OS node that implements a MicroPython interpreter (version 3.4). One example of an application is a custom CLI command. The below sample configuration shows how to configure a python script get_all_interfaces.py (that will show all VRF interfaces and in/out packets in one output) to be used as a CLI command. For sample python scripts, visit [Nokia pySR OS GitHub](https://github.com/nokia/pySR OS).
 
-For more details on pysros configuration, visit [SROS pysros Documentation](https://documentation.nokia.com/aces/sr/23-7-1/books/system-management/python.html).
+For more details on pySR OS configuration, visit [SR OS pySR OS Documentation](https://documentation.nokia.com/aces/sr/23-7-1/books/system-management/python.html).
 
-Also vist the [pySROS API guide](https://documentation.nokia.com/sr/22-10-3/pysros/index.html).
+Also vist the [pySR OS API guide](https://documentation.nokia.com/sr/22-10-3/pySR OS/index.html).
 
-The below example shows a custom CLI command to list all interfaces of all VPRNs along with their In/Out packet counters in a table format. The script is available in [Nokia pysros GitHub Examples](https://github.com/nokia/pysros/blob/main/examples/get_all_vprn_interfaces.py).
+The below example shows a custom CLI command to list all interfaces of all VPRNs along with their In/Out packet counters in a table format. The script is available in [Nokia pySR OS GitHub Examples](https://github.com/nokia/pySR OS/blob/main/examples/get_all_vprn_interfaces.py).
 
 The script is copied over to the CF3 directory.
 
