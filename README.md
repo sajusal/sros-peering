@@ -2,7 +2,9 @@
 
 This page provides the basic step-by-step configuration required to set up a Nokia 7750 Service Router as a Peering router. All the required feature sets for a peering router are covered here with configuration and show examples. Most sections also provide links to Nokia documentation for further reading.
 
-All configurations are in MD-CLI flat format. Reference chassis is 7750 SR-1 and software version is SR OS 23.7R1. Use `show system info` command to verify your router's chassis model and software version.
+All configurations are in MD-CLI flat format. Reference chassis is 7750 SR-1 and software version is SR OS 23.10R2. Use `show system info` command to verify your router's chassis model and software version.
+
+Starting release 23.10, SR OS documentation includes a [Peering Quick Reference Guide](https://documentation.nokia.com/sr/23-10-2/titles/peering-quick-reference.html) that provides the same information but from offical sources.
 
 Disclaimer: This is not an exhaustive list of all the features and associated options on SR OS for peering. For more details on the features and options, please refer to the documentation links in each section.
 
@@ -16,7 +18,7 @@ In this topology, the 7750 SR router is connected to a FRR peer and 2 Route serv
 
 # Switching to MD-CLI
 
-Starting SR OS release 23, all new routers will default to MD-CLI on boot up. In case you are using an older release and need to switch to MD-CLI, please use the below commands which will enable MD-CLI, Netconf and gNMI on the router. For more details on MD-CLI, visit [SR OS MD-CLI Guide](https://documentation.nokia.com/sr/23-7-1/titles/md-cli-command-reference.html#undefined).
+Starting SR OS release 23, all new routers will default to MD-CLI on boot up. In case you are using an older release and need to switch to MD-CLI, please use the below commands which will enable MD-CLI, Netconf and gNMI on the router. For more details on MD-CLI, visit [SR OS MD-CLI Guide](https://documentation.nokia.com/sr/23-10-2/titles/md-cli-command-reference.html#undefined).
 
 
 From Classic CLI run:
@@ -32,15 +34,15 @@ Run the below commands in MD-CLI for your username:
 
 ```
 configure private
-/configure system { management-interface cli md-cli auto-config-save true }
-/configure system { management-interface netconf admin-state enable }
-/configure system { management-interface netconf auto-config-save true }
-/configure system { security user-params local-user user “user1" access netconf true }
-/configure system { grpc admin-state enable }
-/configure system { grpc allow-unsecure-connection }
-/configure system { grpc gnmi admin-state enable }
-/configure system { grpc gnmi auto-config-save true }
-/configure system { security user-params local-user user “user1" access grpc true }
+/configure system management-interface cli md-cli auto-config-save true
+/configure system management-interface netconf admin-state enable
+/configure system management-interface netconf auto-config-save true
+/configure system security user-params local-user user “user1" access netconf true
+/configure system grpc admin-state enable
+/configure system grpc allow-unsecure-connection
+/configure system grpc gnmi admin-state enable
+/configure system grpc gnmi auto-config-save true
+/configure system security user-params local-user user “user1" access grpc true
 commit
 ```
 
@@ -48,23 +50,23 @@ commit
 
 SR OS supports local, TACACS, Radius or LDAP for Authentication, Authorization and Accounting (AAA). The below example shows local management.
 
-For more details on AAA, visit [SR OS AAA Documentation](https://documentation.nokia.com/sr/23-7-1/books/system-management/security-system-management.html#ai9exj5x89).
+For more details on AAA, visit [SR OS AAA Documentation](https://documentation.nokia.com/sr/23-10-2/books/system-management/security-system-management.html#ai9exj5x89).
 
 
 Configuring user profile:
 ```
 /configure system security aaa local-profiles profile "NOC-User" default-action deny-all
-/configure system security aaa local-profiles profile "NOC-User" entry 10 { match "configure system security" }
-/configure system security aaa local-profiles profile "NOC-User" entry 10 { action deny }
-/configure system security aaa local-profiles profile "NOC-User" entry 20 { match "show" }
-/configure system security aaa local-profiles profile "NOC-User" entry 20 { action permit }
+/configure system security aaa local-profiles profile "NOC-User" entry 10 match "configure system security"
+/configure system security aaa local-profiles profile "NOC-User" entry 10 action deny
+/configure system security aaa local-profiles profile "NOC-User" entry 20 match "show"
+/configure system security aaa local-profiles profile "NOC-User" entry 20 action permit
 ```
 
 Configuring user and associating a profile:
 ```
-/configure system security user-params local-user user "markp" password “Changeme1&"
-/configure system security user-params local-user user "markp" access { console true }
-/configure system security user-params local-user user "markp" console { member ["NOC-User"] }
+/configure system security user-params local-user user "markp" password "changme"
+/configure system security user-params local-user user "markp" access console true
+/configure system security user-params local-user user "markp" console member ["NOC-User"]
 ```
 
 # Hardware Configuration
@@ -74,9 +76,9 @@ Assuming this is a brand new router, the cards should be configured before we pr
 The card and mda types depend on the variant of the 7750 SR in use. The equipped card and mda types can be seen using the `show card state` command In this example, we are using a 7750 SR-1 with 1 MDA.
 
 ```
- /configure card 1 card-type iom-1
- /configure card 1 { level he }
- /configure card 1 mda 1 { mda-type me6-100gb-qsfp28 }
+/configure card 1 card-type iom-1
+/configure card 1 level he
+/configure card 1 mda 1 mda-type me6-100gb-qsfp28
 ```
 
 The state of the card and MDA can be viewed using the below show command:
@@ -107,18 +109,17 @@ Port MTU is 9212 by default.
 In this example, we are configuring the connector to use a 1x100G breakout.
 
 ```
- /configure port 1/1/c1 { admin-state enable }
- /configure port 1/1/c1 { connector breakout c1-100g }
- commit
- /configure port 1/1/c1/1 { admin-state enable }
- /configure port 1/1/c1/1 { description "To Peering LAN" }
+/configure port 1/1/c1 admin-state enable
+/configure port 1/1/c1 connector breakout c1-100g
+/configure port 1/1/c1/1 admin-state enable
+/configure port 1/1/c1/1 description "To Peering LAN"
  commit
 ```
 
 The status of the port can be viewed using the below command:
 
 ```
-A:admin@SR1# show port
+A:admin@SR1# /show port
 
 ===============================================================================
 Ports on Slot 1
@@ -134,15 +135,15 @@ The interface is given a name, IP and associated to a physical port.
 
 ```
   /configure router "Base" interface "To-Peering-LAN" port 1/1/c1/1
-  /configure router "Base" interface "To-Peering-LAN" ipv4 { primary address 192.168.0.1 prefix-length 24 }
-  /configure router "Base" interface "To-Peering-LAN" ipv6 { address 2001:a8::4 prefix-length 124 }
+  /configure router "Base" interface "To-Peering-LAN" ipv4 primary address 192.168.0.1 prefix-length 24
+  /configure router "Base" interface "To-Peering-LAN" ipv6 address 2001:a8::4 prefix-length 124
 ```
 
 The `system` interface is the router's loopback interface (like lo0 or loopback0). The name of this interface cannot be changed. If no explicit `router-id` is configured, the `system` interface IPv4 address is used as the router-id. The `system` interface should be assigned a /32 IP.
 
 ```
-  /configure router "Base" interface "system" ipv4 { primary address 10.0.0.1 prefix-length 32 }
-  /configure router "Base" interface "system" ipv6 { address 2001:1::101 prefix-length 128 }
+  /configure router "Base" interface "system" ipv4 primary address 10.0.0.1 prefix-length 32
+  /configure router "Base" interface "system" ipv6 address 2001:1::101 prefix-length 128
 ```
 
 The status of the interfaces can be seen using the below command:
@@ -169,15 +170,53 @@ Interfaces : 2
 
 ```
 
+BFD can be enabled under the interface for both IPv4 and IPv6. In SR OS, BFD is enabled once under the interface along with the timers and is the state is shared with different protocols running over that interface by enabling `bfd-liveness` under each protocol's context.
+
+```
+/configure router "Base" interface "Interface-to-R1" ipv4 bfd admin-state enable
+/configure router "Base" interface "Interface-to-R1" ipv6 bfd admin-state enable
+```
+Enabling BFD state sharing on BGP:
+
+```
+/configure router "Base" bgp group "eBGP-Peering" bfd-liveness true
+```
+
+BFD status can be checked using the following command:
+
+```
+A:admin@SR1# show router bfd session
+
+===============================================================================
+Legend:
+  Session Id = Interface Name | LSP Name | Prefix | RSVP Sess Name | Service Id
+  wp = Working path   pp = Protecting path
+===============================================================================
+BFD Session
+===============================================================================
+Session Id                                        State      Tx Pkts    Rx Pkts
+  Rem Addr/Info/SdpId:VcId                      Multipl     Tx Intvl   Rx Intvl
+  Protocols                                        Type     LAG Port     LAG ID
+  Loc Addr                                                             LAG name
+-------------------------------------------------------------------------------
+to-R2                                                Up          N/A        N/A
+  fe80::e00:5ff:fe86:500-"to-R2"                      3         1000       1000
+  bgp                                            cpm-np          N/A        N/A
+  fe80::e00:4eff:fe5a:9400-"to-R2"
+-------------------------------------------------------------------------------
+No. of BFD sessions: 1
+===============================================================================
+```
+
 # IGP - OSPF
 
 OSPF or IS-IS will be required to connect with other routers within the same AS. In this example, we are configuring a OSPFv2 neighbor. Port and interface configuration is similar to what is shown in previous section.
 
-For more details on OSPF configuration, visit [SR OS OSPF Documentation](https://documentation.nokia.com/sr/23-7-1/books/unicast-routing-protocols/ospf-unicast-routing-protocols.html).
+For more details on OSPF configuration, visit [SR OS OSPF Documentation](https://documentation.nokia.com/sr/23-10-2/books/unicast-routing-protocols/ospf-unicast-routing-protocols.html).
 
 ```
-    /configure router "Base" ospf 0 admin-state enable
-    /configure router "Base" ospf 0 area 0.0.0.0 { interface "Interface-to-R1" interface-type point-to-point }
+/configure router "Base" ospf 0 admin-state enable
+/configure router "Base" ospf 0 area 0.0.0.0 interface "Interface-to-R1" interface-type point-to-point
 ```
 
 OSPF neighbor status can be seen using the below command:
@@ -202,15 +241,15 @@ No. of Neighbors: 1
 
 IS-IS or OSPF will be required to connect with other routers within the same AS. In this example, we are configuring the router to be in IS-IS Level 2 and also enabled IPv6 native routing (the other option is MT). Port and interface configuration is similar to what is shown in previous section.
 
-For more details on IS-IS configuration, visit [SR OS IS-IS Documentation](https://documentation.nokia.com/sr/23-7-1/books/unicast-routing-protocols/is-is-unicast-routing-protocols.html).
+For more details on IS-IS configuration, visit [SR OS IS-IS Documentation](https://documentation.nokia.com/sr/23-10-2/books/unicast-routing-protocols/is-is-unicast-routing-protocols.html).
 
 ```
-    /configure router "Base" isis 0 admin-state enable
-    /configure router "Base" isis 0 ipv6-routing native
-    /configure router "Base" isis 0 level-capability 2
-    /configure router "Base" isis 0 system-id 0100.0000.0001
-    /configure router "Base" isis 0 area-address [49.0000]
-    /configure router "Base" isis 0 interface "Interface-to-R1" { interface-type point-to-point }
+/configure router "Base" isis 0 admin-state enable
+/configure router "Base" isis 0 ipv6-routing native
+/configure router "Base" isis 0 level-capability 2
+/configure router "Base" isis 0 system-id 0100.0000.0001
+/configure router "Base" isis 0 area-address [49.0000]
+/configure router "Base" isis 0 interface "Interface-to-R1" interface-type point-to-point
 ```
 
 IS-IS adjacency status can be seen using the below command:
@@ -233,17 +272,17 @@ Adjacencies : 1
 
 In this example, we are peering with the OpenBGPd and BIRD route servers. Local AS on the SR OS is 64501. Remote AS is 64503.
 
-For more details on BGP configuration, visit [SR OS BGP Documentation](https://documentation.nokia.com/sr/23-7-1/books/unicast-routing-protocols/bgp-unicast-routing-protocols.html).
+For more details on BGP configuration, visit [SR OS BGP Documentation](https://documentation.nokia.com/sr/23-10-2/books/unicast-routing-protocols/bgp-unicast-routing-protocols.html).
 
 ```
-    /configure router "Base" autonomous-system 64501
-    /configure router "Base" bgp router-id 10.0.0.1
-    /configure router "Base" bgp group "eBGP-Peering" { type external }
-    /configure router "Base" bgp group "eBGP-Peering" { peer-as 64503 }
-    /configure router "Base" bgp group "eBGP-Peering" { family ipv4 true }
-    /configure router "Base" bgp group "eBGP-Peering" { family ipv6 true }
-    /configure router "Base" bgp neighbor "192.168.0.3" { group "eBGP-Peering" }
-    /configure router "Base" bgp neighbor "192.168.0.4" { group "eBGP-Peering" }
+/configure router "Base" autonomous-system 64501
+/configure router "Base" bgp router-id 10.0.0.1
+/configure router "Base" bgp group "eBGP-Peering" type external
+/configure router "Base" bgp group "eBGP-Peering" peer-as 64503
+/configure router "Base" bgp group "eBGP-Peering" family ipv4 true
+/configure router "Base" bgp group "eBGP-Peering" family ipv6 true
+/configure router "Base" bgp neighbor "192.168.0.3" group "eBGP-Peering"
+/configure router "Base" bgp neighbor "192.168.0.4" group "eBGP-Peering"
 ```
 
 BGP neighbor status can be seen using the below command.
@@ -341,19 +380,73 @@ Occupancy Threshold Alerts
 ===============================================================================
 ```
 
+## BGP Dynamic Peering with Unnumbered Interface
+
+SR OS supports unnumbered interface and dynamic peers for both IPv4 and IPv6. Dynamic sessions are detected by either of the following mechanisms:
+
+- The source IP address of an incoming BGP TCP connection matches an IP prefix associated with dynamic BGP sessions.
+
+- An ICMPv6 router advertisement message is received from a potential BGP router on an interface listed as a dynamic-neighbor interface. This allows a dynamic peer to be setup over an unnumbered interface using the IPv6 Link Local Address (LLA) only using the below configuration.
+
+```
+/configure router "Base" interface "to-R2" admin-state enable
+/configure router "Base" interface "to-R2" port 1/1/c3/1
+/configure router "Base" interface "to-R2" ipv4 unnumbered system
+/configure router "Base" interface "to-R2" ipv6
+
+/configure router "Base" bgp group "BGP_Unnumbered" type external
+/configure router "Base" bgp group "BGP_Unnumbered" family ipv4 true
+/configure router "Base" bgp group "BGP_Unnumbered" family ipv6 true
+/configure router "Base" bgp group "BGP_Unnumbered" dynamic-neighbor interface "to-R2" allowed-peer-as ["64500..65500"]
+
+/configure router "Base" ipv6 router-advertisement interface "to-R2" admin-state enable
+/configure router "Base" ipv6 router-advertisement interface "to-R2" min-advertisement-interval 10
+```
+
+BGP neighbor status can be seen using the below command.
+
+```
+A:admin@SR1# show router bgp summary
+===============================================================================
+ BGP Router ID:10.0.0.1         AS:64501       Local AS:64501
+===============================================================================
+BGP Admin State         : Up          BGP Oper State              : Up
+Total Peer Groups       : 1           Total Peers                 : 2
+Total VPN Peer Groups   : 0           Total VPN Peers             : 0
+Current Internal Groups : 1           Max Internal Groups         : 1
+Total BGP Paths         : 21          Total Path Memory           : 7416
+
+-- snip --
+
+===============================================================================
+BGP Summary
+===============================================================================
+Legend : D - Dynamic Neighbor
+===============================================================================
+Neighbor
+Description
+                   AS PktRcvd InQ  Up/Down   State|Rcv/Act/Sent (Addr Family)
+                      PktSent OutQ
+-------------------------------------------------------------------------------
+fe80::e00:5ff:fe86:500-"to-R2"(D)
+                65100     105    0 00h50m25s 0/0/0 (IPv4)
+                          106    0           0/0/0 (IPv6)
+-------------------------------------------------------------------------------
+```
+
 # Route Policies
 
 Routing policies control the size and content of the routing tables, the routes that are advertised, and the best route to take to reach a destination.
 
-For more details on route policy configuration and options, visit [SR OS Route Policies Documentation](https://documentation.nokia.com/sr/23-7-1/books/unicast-routing-protocols/route-policies.html).
+For more details on route policy configuration and options, visit [SR OS Route Policies Documentation](https://documentation.nokia.com/sr/23-10-2/books/unicast-routing-protocols/route-policies.html).
 
 In these examples, we are creating AS path lists, community and prefix lists.
 
 ```
- /configure policy-options as-path "PEERING" { expression "64503" }
- /configure policy-options as-path-group "BOGON" { entry 10 expression ".* 0 .*" }
- /configure policy-options as-path-group "BOGON" { entry 20 expression ".* [64496-64511] .*" }
- /configure policy-options as-path-group "BOGON" { entry 30 expression ".* 65535 .*" }
+ /configure policy-options as-path "PEERING" expression "64503"
+ /configure policy-options as-path-group "BOGON" entry 10 expression ".* 0 .*"
+ /configure policy-options as-path-group "BOGON" entry 20 expression ".* [64496-64511] .*"
+ /configure policy-options as-path-group "BOGON" entry 30 expression ".* 65535 .*"
 
  /configure policy-options community "LARGE-PEER" { member "65100:100" }
  /configure policy-options community "SMALL-PEERS" { member "65200:200" }
@@ -361,35 +454,35 @@ In these examples, we are creating AS path lists, community and prefix lists.
  /configure policy-options community "SMALL-PEERS" { member "65500:.*" }
 
  /configure policy-options prefix-list "AS65xx-prefixes" { prefix 10.100.100.0/24 type longer }
- /configure policy-options prefix-list "AS65xx-prefixes" { prefix 10.200.0.0/16 type through through-length 24 }
- /configure policy-options prefix-list "AS65xx-prefixes" { prefix 192.168.10.0/24 type through through-length 24 }
+ /configure policy-options prefix-list "AS65xx-prefixes" prefix 10.200.0.0/16 type through through-length 24
+ /configure policy-options prefix-list "AS65xx-prefixes" prefix 192.168.10.0/24 type through through-length 24
  /configure policy-options prefix-list "AS65xx-prefixes" { prefix 10.10.1.1/32 type exact }
- /configure policy-options prefix-list "AS65xx-prefixes" { prefix 172.16.0.0/16 type range start-length 16 }
- /configure policy-options prefix-list "AS65xx-prefixes" { prefix 172.16.0.0/16 type range end-length 19 }
+ /configure policy-options prefix-list "AS65xx-prefixes" prefix 172.16.0.0/16 type range start-length 16
+ /configure policy-options prefix-list "AS65xx-prefixes" prefix 172.16.0.0/16 type range end-length 19
  /configure policy-options prefix-list "IPv6-list" { prefix 2001:fd00:84::/46 type longer }
- /configure policy-options prefix-list "SMALLER_THAN_/48" { prefix ::/0 type range start-length 49 }
- /configure policy-options prefix-list "SMALLER_THAN_/48" { prefix ::/0 type range end-length 128 }
+ /configure policy-options prefix-list "SMALLER_THAN_/48" prefix ::/0 type range start-length 49
+ /configure policy-options prefix-list "SMALLER_THAN_/48" prefix ::/0 type range end-length 128
 ```
 
 Policy statements can be created as below. Entries can be either numbered or named.
 
 ```
-    /configure policy-options policy-statement "EXT-AS-IMPORT" entry-type named
-    /configure policy-options policy-statement "EXT-AS-IMPORT" named-entry "Routes-AS64503" { from as-path name "PEERING" }
-    /configure policy-options policy-statement "EXT-AS-IMPORT" named-entry "Routes-AS64503" { action action-type accept }
+/configure policy-options policy-statement "EXT-AS-IMPORT" entry-type named
+/configure policy-options policy-statement "EXT-AS-IMPORT" named-entry "Routes-AS64503" from as-path name "PEERING"
+/configure policy-options policy-statement "EXT-AS-IMPORT" named-entry "Routes-AS64503" action action-type accept
 ```
 
 The policy can be applied as import or export under the BGP root, group or neighbor context.
 
 ```
-/configure router "Base" bgp group "eBGP-Peering" import { policy ["EXT-AS-IMPORT"] }
+/configure router "Base" bgp group "eBGP-Peering" import policy ["EXT-AS-IMPORT"]
 ```
 
 # Test Route Policies
 
 Route policies can be tested and evaluated before they are applied to BGP.
 
-For more details and examples, visit [SR OS MD-CLI Command Tree](https://documentation.nokia.com/aces/sr/23-7-1/cli-books/clear-monitor-show-tools-commands/cmst-p-commands.html#ai9j784l5l)
+For more details and examples, visit [SR OS MD-CLI Command Tree](https://documentation.nokia.com/aces/sr/23-10-2/cli-books/clear-monitor-show-tools-commands/cmst-p-commands.html#ai9j784l5l)
 
 ```
 A:admin@SR1# show router bgp policy-test plcy-or-long-expr "EXT-AS-IMPORT" family ipv4 prefix 0.0.0.0/0 longer neighbor 192.168.0.3
@@ -427,51 +520,64 @@ Routes : 3
 
 # CPM Filter
 
-CPM filters are hardware-based filters used to restrict traffic from the line cards directed to the CPM CPU, such as control and management packets. Separate configuration is required for IPv4 and IPv6 packet matching conditions. Prefix lists can be used for groups of IP addresses.
+CPM filters are hardware-based filters used to restrict traffic from the line cards directed to the CPM CPU, such as control and management packets. Separate configuration is required for IPv4 and IPv6 packet matching conditions.
+
+Prefix lists can be used for groups of IP addresses. SR OS also supports the autogeneration of IPv4 and IPv6 prefix list entries for BGP peers using `apply-path`. Regular expressions are supported.
 
 In this example, we have 3 entries. The 3rd entry will log and accept all unmatched packets after the first 2 entries.
 
-In order to avoid getting locked out of the router while configuring CPM filters, it is recommended to use `commit confirm` when making changes.
+In order to avoid getting locked out of the router while configuring CPM filters, it is recommended to use `commit confirmed` when making changes.
 
-For more details on CPM filters, visit [SR OS CPM Filter Documentation](https://documentation.nokia.com/sr/23-7-1/books/system-management/security-system-management.html#ai9exj5yai). Also, check out the [SR OS Security Guide](https://documentation.nokia.com/aces/sr/23-7-1/titles/security.html).
+For more details on CPM filters, visit [SR OS CPM Filter Documentation](https://documentation.nokia.com/sr/23-10-2/books/system-management/security-system-management.html#ai9exj5yai). Also, check out the [SR OS Security Guide](https://documentation.nokia.com/aces/sr/23-10-2/titles/security.html).
+
+Example of using `apply-path` for IPv4 and IPv6 prefix lists:
+```
+/configure filter match-list ip-prefix-list "bgp-neighbors" apply-path bgp-peers 1 group "^eBGP-.*"
+/configure filter match-list ip-prefix-list "bgp-neighbors" apply-path bgp-peers 1 neighbor "^192.*"
+/configure filter match-list ip-prefix-list "bgp-neighbors" apply-path bgp-peers 1 router-instance 
+
+/configure filter match-list ipv6-prefix-list "eBGP-v6-Peers" apply-path bgp-peers 1 group "^eBGP-.*"
+/configure filter match-list ipv6-prefix-list "eBGP-v6-Peers" apply-path bgp-peers 1 neighbor ".*"
+/configure filter match-list ipv6-prefix-list "eBGP-v6-Peers" apply-path bgp-peers 1 router-instance 
+```
 
 ```
- /configure filter match-list { ip-prefix-list "SNMP-Source" prefix 192.168.10.30/32 }
- /configure filter match-list { ip-prefix-list "SSH-Sources" prefix 10.10.100.10/32 }
- /configure filter match-list { ip-prefix-list "SSH-Sources" prefix 172.16.20.0/24 }
- /configure system security cpm-filter ip-filter { admin-state enable }
- /configure system security cpm-filter ip-filter { entry 100 description "SSH Access" }
- /configure system security cpm-filter ip-filter { entry 100 match protocol tcp }
- /configure system security cpm-filter ip-filter { entry 100 match src-ip ip-prefix-list "SSH-Sources" }
- /configure system security cpm-filter ip-filter { entry 100 match dst-port eq 22 }
- /configure system security cpm-filter ip-filter { entry 100 action accept }
- /configure system security cpm-filter ip-filter { entry 200 description "SNMP Access" }
- /configure system security cpm-filter ip-filter { entry 200 match protocol udp }
- /configure system security cpm-filter ip-filter { entry 200 match src-ip ip-prefix-list "SNMP-Source" }
- /configure system security cpm-filter ip-filter { entry 200 match dst-port eq 161 }
- /configure system security cpm-filter ip-filter { entry 200 action accept }
- /configure system security cpm-filter ip-filter { entry 1000 log 101 }
- /configure system security cpm-filter ip-filter { entry 1000 action accept }
+/configure filter match-list { ip-prefix-list "SNMP-Source" prefix 192.168.10.30/32 }
+/configure filter match-list { ip-prefix-list "SSH-Sources" prefix 10.10.100.10/32 }
+/configure filter match-list { ip-prefix-list "SSH-Sources" prefix 172.16.20.0/24 }
+/configure system security cpm-filter ip-filter admin-state enable
+/configure system security cpm-filter ip-filter entry 100 description "SSH Access"
+/configure system security cpm-filter ip-filter entry 100 match protocol tcp
+/configure system security cpm-filter ip-filter entry 100 match src-ip ip-prefix-list "SSH-Sources"
+/configure system security cpm-filter ip-filter entry 100 match dst-port eq 22
+/configure system security cpm-filter ip-filter entry 100 action accept
+/configure system security cpm-filter ip-filter entry 200 description "SNMP Access"
+/configure system security cpm-filter ip-filter entry 200 match protocol udp
+/configure system security cpm-filter ip-filter entry 200 match src-ip ip-prefix-list "SNMP-Source"
+/configure system security cpm-filter ip-filter entry 200 match dst-port eq 161
+/configure system security cpm-filter ip-filter entry 200 action accept
+/configure system security cpm-filter ip-filter entry 1000 log 101
+/configure system security cpm-filter ip-filter entry 1000 action accept
+commit confirmed
 ```
 
 An IPv6 CPM filter can be configured as below:
 
 ```
- /configure filter match-list { ipv6-prefix-list "EBGP-v6-PEERS" prefix 2001:a8::4/127 }
- /configure filter match-list { ipv6-prefix-list "EBGP-v6-PEERS" prefix 2013:ab33:1::54/127 }
-
- /configure system security cpm-filter ipv6-filter { admin-state enable }
- /configure system security cpm-filter ipv6-filter { entry 700 description "Inbound eBGP IPv6 peers" }
- /configure system security cpm-filter ipv6-filter { entry 700 match next-header tcp }
- /configure system security cpm-filter ipv6-filter { entry 700 match src-ip ipv6-prefix-list "EBGP-v6-PEERS" }
- /configure system security cpm-filter ipv6-filter { entry 700 match dst-port eq 179 }
- /configure system security cpm-filter ipv6-filter { entry 700 action accept }
- 
- /configure system security cpm-filter ipv6-filter { entry 750 description "Outbound eBGP IPv6 peers" }
- /configure system security cpm-filter ipv6-filter { entry 750 match next-header tcp }
- /configure system security cpm-filter ipv6-filter { entry 750 match src-ip ipv6-prefix-list "EBGP-v6-PEERS" }
- /configure system security cpm-filter ipv6-filter { entry 750 match src-port eq 179 }
- /configure system security cpm-filter ipv6-filter { entry 750 action accept }
+/configure filter match-list { ipv6-prefix-list "EBGP-v6-PEERS" prefix 2001:a8::4/127 }
+/configure filter match-list { ipv6-prefix-list "EBGP-v6-PEERS" prefix 2013:ab33:1::54/127 }
+/configure system security cpm-filter ipv6-filter admin-state enable
+/configure system security cpm-filter ipv6-filter entry 700 description "Inbound eBGP IPv6 peers"
+/configure system security cpm-filter ipv6-filter entry 700 match next-header tcp
+/configure system security cpm-filter ipv6-filter entry 700 match src-ip ipv6-prefix-list "EBGP-v6-PEERS"
+/configure system security cpm-filter ipv6-filter entry 700 match dst-port eq 179
+/configure system security cpm-filter ipv6-filter entry 700 action accept 
+/configure system security cpm-filter ipv6-filter entry 750 description "Outbound eBGP IPv6 peers"
+/configure system security cpm-filter ipv6-filter entry 750 match next-header tcp
+/configure system security cpm-filter ipv6-filter entry 750 match src-ip ipv6-prefix-list "EBGP-v6-PEERS"
+/configure system security cpm-filter ipv6-filter entry 750 match src-port eq 179
+/configure system security cpm-filter ipv6-filter entry 750 action accept
+commit confirmed
 ```
 
 CPM filter entry statistics can be see using the below command:
@@ -511,43 +617,43 @@ In this example, we have 3 entries. The 3rd entry will log and accept all unmatc
 
 In order to avoid getting locked out of the router while configuring Management Access Filters, it is recommended to use `commit confirm` when making changes.
 
-For more details on MAF, visit [SR OS MAF Documentation](https://documentation.nokia.com/aces/sr/23-7-1/books/system-management/security-system-management.html#ai9exj5ybh).
+For more details on MAF, visit [SR OS MAF Documentation](https://documentation.nokia.com/aces/sr/23-10-2/books/system-management/security-system-management.html#ai9exj5ybh).
 
 ```
-  /configure system security management-access-filter ip-filter { default-action drop }
-  /configure system security management-access-filter ip-filter { entry 100 description "Permit SSH Prefix" }
-  /configure system security management-access-filter ip-filter { entry 100 action accept }
-  /configure system security management-access-filter ip-filter { entry 100 match router-instance "management" }
-  /configure system security management-access-filter ip-filter { entry 100 match protocol tcp }
-  /configure system security management-access-filter ip-filter { entry 100 match src-ip ip-prefix-list "SSH-Sources" }
-  /configure system security management-access-filter ip-filter { entry 100 match mgmt-port cpm }
-  /configure system security management-access-filter ip-filter { entry 100 match dst-port port 22 }
-  /configure system security management-access-filter ip-filter { entry 200 description "Permit SNMP Prefix" }
-  /configure system security management-access-filter ip-filter { entry 200 action accept }
-  /configure system security management-access-filter ip-filter { entry 200 match router-instance "management" }
-  /configure system security management-access-filter ip-filter { entry 200 match protocol udp }
-  /configure system security management-access-filter ip-filter { entry 200 match src-ip ip-prefix-list "SNMP-Source" }
-  /configure system security management-access-filter ip-filter { entry 200 match mgmt-port cpm }
-  /configure system security management-access-filter ip-filter { entry 200 match dst-port port 161 }
-  /configure system security management-access-filter ip-filter { entry 2000 description "Management Plane Default" }
-  /configure system security management-access-filter ip-filter { entry 2000 action accept }
-  /configure system security management-access-filter ip-filter { entry 2000 log-events true }
-  /configure system security management-access-filter ip-filter { entry 2000 match router-instance "management" }
-  /configure system security management-access-filter ip-filter { entry 2000 match mgmt-port cpm }
+/configure system security management-access-filter ip-filter default-action drop
+/configure system security management-access-filter ip-filter entry 100 description "Permit SSH Prefix"
+/configure system security management-access-filter ip-filter entry 100 action accept
+/configure system security management-access-filter ip-filter entry 100 match router-instance "management"
+/configure system security management-access-filter ip-filter entry 100 match protocol tcp
+/configure system security management-access-filter ip-filter entry 100 match src-ip ip-prefix-list "SSH-Sources"
+/configure system security management-access-filter ip-filter entry 100 match mgmt-port cpm
+/configure system security management-access-filter ip-filter entry 100 match dst-port port 22
+/configure system security management-access-filter ip-filter entry 200 description "Permit SNMP Prefix"
+/configure system security management-access-filter ip-filter entry 200 action accept
+/configure system security management-access-filter ip-filter entry 200 match router-instance "management"
+/configure system security management-access-filter ip-filter entry 200 match protocol udp
+/configure system security management-access-filter ip-filter entry 200 match src-ip ip-prefix-list "SNMP-Source"
+/configure system security management-access-filter ip-filter entry 200 match mgmt-port cpm
+/configure system security management-access-filter ip-filter entry 200 match dst-port port 161
+/configure system security management-access-filter ip-filter entry 2000 description "Management Plane Default"
+/configure system security management-access-filter ip-filter entry 2000 action accept
+/configure system security management-access-filter ip-filter entry 2000 log-events true
+/configure system security management-access-filter ip-filter entry 2000 match router-instance "management"
+/configure system security management-access-filter ip-filter entry 2000 match mgmt-port cpm
 ```
 
 An IPv6 Management Access Filter can be configured as below:
 
 ```
-    /configure system security management-access-filter ipv6-filter default-action drop
-    /configure system security management-access-filter ipv6-filter entry 10 { action accept }
-    /configure system security management-access-filter ipv6-filter entry 10 { match router-instance "management" }
-    /configure system security management-access-filter ipv6-filter entry 10 { match next-header tcp-udp }
-    /configure system security management-access-filter ipv6-filter entry 10 { match src-ip ipv6-prefix-list "EBGP-v6-PEERS" }
-    /configure system security management-access-filter ipv6-filter entry 10 { match mgmt-port cpm }
-    /configure system security management-access-filter ipv6-filter entry 1000 { action accept }
-    /configure system security management-access-filter ipv6-filter entry 1000 { match router-instance "management" }
-    /configure system security management-access-filter ipv6-filter entry 1000 { match mgmt-port cpm }
+/configure system security management-access-filter ipv6-filter default-action drop
+/configure system security management-access-filter ipv6-filter entry 10 action accept
+/configure system security management-access-filter ipv6-filter entry 10 match router-instance "management"
+/configure system security management-access-filter ipv6-filter entry 10 match next-header tcp-udp
+/configure system security management-access-filter ipv6-filter entry 10 match src-ip ipv6-prefix-list "EBGP-v6-PEERS"
+/configure system security management-access-filter ipv6-filter entry 10 match mgmt-port cpm
+/configure system security management-access-filter ipv6-filter entry 1000 action accept
+/configure system security management-access-filter ipv6-filter entry 1000 match router-instance "management"
+/configure system security management-access-filter ipv6-filter entry 1000 match mgmt-port cpm
 
 ```
 
@@ -579,29 +685,29 @@ Matches        : 1424
 
 # Cflowd
 
-Cflowd is a tool used to obtain samples of IPv4, IPv6, MPLS, and Ethernet traffic data flows through a router. 
+Cflowd is a tool used to obtain samples of IPv4, IPv6, MPLS, and Ethernet traffic data flows through a router.
 
-For more details on Cflowd, visit [SR OS Cflowd Documentation](https://documentation.nokia.com/aces/sr/23-7-1/books/router-configuration/cflowd.html).
+For more details on Cflowd, visit [SR OS Cflowd Documentation](https://documentation.nokia.com/aces/sr/23-10-2/books/router-configuration/cflowd.html).
 
 ```
-    /configure cflowd overflow 10
-    /configure cflowd active-flow-timeout 30
-    /configure cflowd inactive-flow-timeout 10
-    /configure cflowd sample-profile 1 { sample-rate 100 }
-    /configure cflowd collector 10.10.10.2 port 5000 { description "Neighbor collector" }
-    /configure cflowd collector 10.10.10.2 port 5000 { autonomous-system-type peer }
-    /configure cflowd collector 10.10.10.2 port 5000 { version 8 }
-    /configure cflowd collector 10.10.10.2 port 5000 { aggregation protocol-port true }
-    /configure cflowd collector 10.10.10.2 port 5000 { aggregation source-destination-prefix true }
-    /configure cflowd collector 10.10.10.9 port 2000 { description "v9collector" }
-    /configure cflowd collector 10.10.10.9 port 2000 { template-set mpls-ip }
-    /configure cflowd collector 10.10.10.9 port 2000 { version 9 }
+/configure cflowd overflow 10
+/configure cflowd active-flow-timeout 30
+/configure cflowd inactive-flow-timeout 10
+/configure cflowd sample-profile 1 sample-rate 100
+/configure cflowd collector 10.10.10.2 port 5000 description "Neighbor collector"
+/configure cflowd collector 10.10.10.2 port 5000 autonomous-system-type peer
+/configure cflowd collector 10.10.10.2 port 5000 version 8
+/configure cflowd collector 10.10.10.2 port 5000 aggregation protocol-port true
+/configure cflowd collector 10.10.10.2 port 5000 aggregation source-destination-prefix true
+/configure cflowd collector 10.10.10.9 port 2000 description "v9collector"
+/configure cflowd collector 10.10.10.9 port 2000 template-set mpls-ip
+/configure cflowd collector 10.10.10.9 port 2000 version 9
 ```
 
 Cflowd is then enabled on the interface.
 
 ```
-/configure router "Base" interface "To-Peering-LAN" cflowd-parameters { sampling unicast type interface }
+/configure router "Base" interface "To-Peering-LAN" cflowd-parameters sampling unicast type interface
 ```
 
 Cflowd status can be seen using the below command:
@@ -653,15 +759,15 @@ SR OS supports RPKI for BGP prefix origin validation.
 
 In this example, we are configuring a RPKI session with an external server and then enabling prefix origin validation under the BGP group. We are also configuring BGP to not use any routes whose origin is invalid.
 
-For more details on RPKI implementation, visit [SR OS RPKI Documentation](https://documentation.nokia.com/aces/sr/23-7-1/books/unicast-routing-protocols/bgp-unicast-routing-protocols.html#d497e11185).
+For more details on RPKI implementation, visit [SR OS RPKI Documentation](https://documentation.nokia.com/aces/sr/23-10-2/books/unicast-routing-protocols/bgp-unicast-routing-protocols.html#d497e11185).
 
 ```
-    /configure router "Base" origin-validation rpki-session 172.31.1.2 { admin-state enable }
-    /configure router "Base" origin-validation rpki-session 172.31.1.2 { local-address 10.10.1.4 }
-    /configure router "Base" origin-validation rpki-session 172.31.1.2 { port 8282 }
-    /configure router "Base" bgp group "eBGP-Peering" { origin-validation ipv4 true }
-    /configure router "Base" bgp group "eBGP-Peering" { origin-validation ipv6 true }
-    /configure router "Base" bgp best-path-selection { origin-invalid-unusable true }
+/configure router "Base" origin-validation rpki-session 172.31.1.2 admin-state enable
+/configure router "Base" origin-validation rpki-session 172.31.1.2 local-address 10.10.1.4
+/configure router "Base" origin-validation rpki-session 172.31.1.2 port 8282
+/configure router "Base" bgp group "eBGP-Peering" origin-validation ipv4 true
+/configure router "Base" bgp group "eBGP-Peering" origin-validation ipv6 true
+/configure router "Base" bgp best-path-selection origin-invalid-unusable true
 ```
 
 RPKI session status can be seen using the below command:
@@ -691,24 +797,18 @@ No. of Sessions    : 1
 
 FlowSpec is a standardized method for using BGP to distribute traffic flow specifications (flow routes) throughout a network. FlowSpec is supported for both IPv4 and IPv6.
 
-For more details on Flowspec implementation, visit [SR OS Flowspec Documentation](https://documentation.nokia.com/aces/sr/23-7-1/books/unicast-routing-protocols/bgp-unicast-routing-protocols.html#ai9exj5yj3).
+For more details on Flowspec implementation, visit [SR OS Flowspec Documentation](https://documentation.nokia.com/aces/sr/23-10-2/books/unicast-routing-protocols/bgp-unicast-routing-protocols.html#ai9exj5yj3).
 
 ```
-    /configure router "Base" bgp neighbor "192.168.0.3" { family ipv4 true }
-    /configure router "Base" bgp neighbor "192.168.0.3" { family ipv6 true }
-    /configure router "Base" bgp neighbor "192.168.0.3" { family flow-ipv4 true }
-    /configure router "Base" bgp neighbor "192.168.0.3" { family flow-ipv6 true }
-    /configure router "Base" bgp neighbor "192.168.0.4" { family ipv4 true }
-    /configure router "Base" bgp neighbor "192.168.0.4" { family ipv6 true }
-    /configure router "Base" bgp neighbor "192.168.0.4" { family flow-ipv4 true }
-    /configure router "Base" bgp neighbor "192.168.0.4" { family flow-ipv6 true }
+/configure router "Base" bgp neighbor "192.168.0.3" family ipv4 true
+/configure router "Base" bgp neighbor "192.168.0.3" family ipv6 true
+/configure router "Base" bgp neighbor "192.168.0.3" family flow-ipv4 true
+/configure router "Base" bgp neighbor "192.168.0.3" family flow-ipv6 true
+/configure filter ip-filter "FSPEC-filter" default-action accept
+/configure filter ip-filter "FSPEC-filter" filter-id 99
+/configure filter ip-filter "FSPEC-filter" embed flowspec offset 1000 router-instance "Base"
 
-    /configure filter ip-filter "FSPEC-filter" default-action accept
-    /configure filter ip-filter "FSPEC-filter" filter-id 99
-    /configure filter ip-filter "FSPEC-filter" embed { flowspec offset 1000 }
-    /configure filter ip-filter "FSPEC-filter" embed { flowspec offset 1000 router-instance "Base" }
-
-    /configure router "Base" interface "To-Peering-LAN" ingress { filter ip "FSPEC-filter" }
+/configure router "Base" interface "To-Peering-LAN" ingress filter ip "FSPEC-filter"
 ```
 
 BGP flowspec routes can be seen using the `show router bgp routes flow-ipv4`. Filter details can be seen using the below command:
@@ -742,44 +842,44 @@ No Match Criteria Found
 
 Unicast reverse path forwarding check (uRPF) helps to mitigate problems that are caused by the introduction of malformed or forged (spoofed) IP source addresses into a network by discarding IP packets that lack a verifiable IP source address. uRPF is supported for both IPv4 and IPv6 on network and access. 
 
-For more details on uRPF, visit [SR OS uRPF Documentation](https://documentation.nokia.com/aces/sr/23-7-1/books/router-configuration/ip-router-configuration.html#d10e138).
+For more details on uRPF, visit [SR OS uRPF Documentation](https://documentation.nokia.com/aces/sr/23-10-2/books/router-configuration/ip-router-configuration.html#d10e138).
 
 ```
-    /configure router "Base" interface "To-Peering-LAN" ipv4 { urpf-check mode loose }
-    /configure router "Base" interface "To-Peering-LAN" ipv6 { urpf-check mode loose }
+/configure router "Base" interface "To-Peering-LAN" ipv4 urpf-check mode loose
+/configure router "Base" interface "To-Peering-LAN" ipv6 urpf-check mode loose
 ```
 
 # ACL
 
 ACL filter policies, also referred to as Access Control Lists (ACLs) or just ‟filters”, are sets of ordered rule entries specifying packet match criteria and actions to be performed to a packet upon a match. Filter policies are created with a unique filter ID and filter name. After the filter policy is created, the policy must then be associated with interfaces or services.
 
-For more details on ACL, visit [SR OS ACL Documentation](https://documentation.nokia.com/aces/sr/23-7-1/books/router-configuration/filter-policies-router-configuration.html).
+For more details on ACL, visit [SR OS ACL Documentation](https://documentation.nokia.com/aces/sr/23-10-2/books/router-configuration/filter-policies-router-configuration.html).
 
 ```
 /configure filter match-list port-list "AS7xx-Ports" { port 179 }
-/configure filter match-list port-list "AS7xx-Ports" range start 30000 end 64000 { }
+/configure filter match-list port-list "AS7xx-Ports" range start 30000 end 64000
 /configure filter ip-filter "AS700-ALLOW" filter-id 700
-/configure filter ip-filter "AS700-ALLOW" entry 10 { match protocol tcp }
-/configure filter ip-filter "AS700-ALLOW" entry 10 { match src-ip ip-prefix-list "SSH-Sources" }
-/configure filter ip-filter "AS700-ALLOW" entry 10 { match dst-ip ip-prefix-list "SNMP-Source" }
-/configure filter ip-filter "AS700-ALLOW" entry 10 { action accept }
+/configure filter ip-filter "AS700-ALLOW" entry 10 match protocol tcp
+/configure filter ip-filter "AS700-ALLOW" entry 10 match src-ip ip-prefix-list "SSH-Sources"
+/configure filter ip-filter "AS700-ALLOW" entry 10 match dst-ip ip-prefix-list "SNMP-Source"
+/configure filter ip-filter "AS700-ALLOW" entry 10 action accept
 
 /configure filter ipv6-filter "AS-IPv6-ALLOW" filter-id 800
-/configure filter ipv6-filter "AS-IPv6-ALLOW" entry 10 { match next-header tcp }
-/configure filter ipv6-filter "AS-IPv6-ALLOW" entry 10 { match src-ip ipv6-prefix-list "EBGP-v6-PEERS" }
-/configure filter ipv6-filter "AS-IPv6-ALLOW" entry 10 { match src-port port-list "AS7xx-Ports" }
-/configure filter ipv6-filter "AS-IPv6-ALLOW" entry 10 { action accept }
-/configure filter ipv6-filter "AS-IPv6-ALLOW" entry 20 { match next-header tcp }
-/configure filter ipv6-filter "AS-IPv6-ALLOW" entry 20 { match dst-ip ipv6-prefix-list "EBGP-v6-PEERS" }
-/configure filter ipv6-filter "AS-IPv6-ALLOW" entry 20 { match dst-port port-list "AS7xx-Ports" }
-/configure filter ipv6-filter "AS-IPv6-ALLOW" entry 20 { action accept }
+/configure filter ipv6-filter "AS-IPv6-ALLOW" entry 10 match next-header tcp
+/configure filter ipv6-filter "AS-IPv6-ALLOW" entry 10 match src-ip ipv6-prefix-list "EBGP-v6-PEERS"
+/configure filter ipv6-filter "AS-IPv6-ALLOW" entry 10 match src-port port-list "AS7xx-Ports"
+/configure filter ipv6-filter "AS-IPv6-ALLOW" entry 10 action accept
+/configure filter ipv6-filter "AS-IPv6-ALLOW" entry 20 match next-header tcp
+/configure filter ipv6-filter "AS-IPv6-ALLOW" entry 20 match dst-ip ipv6-prefix-list "EBGP-v6-PEERS"
+/configure filter ipv6-filter "AS-IPv6-ALLOW" entry 20 match dst-port port-list "AS7xx-Ports"
+/configure filter ipv6-filter "AS-IPv6-ALLOW" entry 20 action accept
 ```
 
 The filters are then applied to the interface.
 
 ```
-    /configure router "Base" interface "To-Peering-LAN" ingress { filter ip "AS700-ALLOW" }
-    /configure router "Base" interface "To-Peering-LAN" ingress { filter ipv6 "AS-IPv6-ALLOW" }
+/configure router "Base" interface "To-Peering-LAN" ingress filter ip "AS700-ALLOW"
+/configure router "Base" interface "To-Peering-LAN" ingress filter ipv6 "AS-IPv6-ALLOW"
 ```
 
 ACL statistics can be seen using the below command:
@@ -820,18 +920,18 @@ ACL policies can be used to rate limit NTP, DNS or other types of common DDoS pa
 ```
 /configure filter match-list ip-prefix-list "Core-IP" { prefix 172.16.20.0/24 }
 /configure filter ip-filter "AS700-ALLOW" type packet-length
-/configure filter ip-filter "AS700-ALLOW" entry 20 { match protocol udp }
-/configure filter ip-filter "AS700-ALLOW" entry 20 { match dst-ip ip-prefix-list "Core-IP" }
-/configure filter ip-filter "AS700-ALLOW" entry 20 { match port eq 123 }
-/configure filter ip-filter "AS700-ALLOW" entry 20 { match packet-length gt 600 }
-/configure filter ip-filter "AS700-ALLOW" entry 20 { action accept }
-/configure filter ip-filter "AS700-ALLOW" entry 20 { action rate-limit pir 1000 }
-/configure filter ip-filter "AS700-ALLOW" entry 30 { match protocol udp }
-/configure filter ip-filter "AS700-ALLOW" entry 30 { match dst-ip ip-prefix-list "Core-IP" }
-/configure filter ip-filter "AS700-ALLOW" entry 30 { match port eq 53 }
-/configure filter ip-filter "AS700-ALLOW" entry 30 { match packet-length gt 600 }
-/configure filter ip-filter "AS700-ALLOW" entry 30 { action accept }
-/configure filter ip-filter "AS700-ALLOW" entry 30 { action rate-limit pir 1000 }
+/configure filter ip-filter "AS700-ALLOW" entry 20 match protocol udp
+/configure filter ip-filter "AS700-ALLOW" entry 20 match dst-ip ip-prefix-list "Core-IP"
+/configure filter ip-filter "AS700-ALLOW" entry 20 match port eq 123
+/configure filter ip-filter "AS700-ALLOW" entry 20 match packet-length gt 600
+/configure filter ip-filter "AS700-ALLOW" entry 20 action accept
+/configure filter ip-filter "AS700-ALLOW" entry 20 action rate-limit pir 1000
+/configure filter ip-filter "AS700-ALLOW" entry 30 match protocol udp
+/configure filter ip-filter "AS700-ALLOW" entry 30 match dst-ip ip-prefix-list "Core-IP"
+/configure filter ip-filter "AS700-ALLOW" entry 30 match port eq 53
+/configure filter ip-filter "AS700-ALLOW" entry 30 match packet-length gt 600
+/configure filter ip-filter "AS700-ALLOW" entry 30 action accept
+/configure filter ip-filter "AS700-ALLOW" entry 30 action rate-limit pir 1000
 ```
 
 # Redirecting suspicious traffic using ACL
@@ -842,45 +942,44 @@ In this example, we are re-directing packets based on source or destination ip m
 
 ```
 /configure filter match-list ip-prefix-list "Core-IP" { prefix 172.16.20.0/24 }
-/configure filter ip-filter " pbr-nh-1 " filter-id 788
-/configure filter ip-filter "pbr-nh-1" entry 10 { match src-ip ip-prefix-list "Core-IP” }
-/configure filter ip-filter "pbr-nh-1" entry 10 { action forward next-hop nh-ip address 172.19.20.3 }
-/configure filter ip-filter "pbr-nh-1" entry 20 { match dst-ip ip-prefix-list “Core-IP" }
-/configure filter ip-filter "pbr-nh-1" entry 20 { action forward next-hop nh-ip indirect true }
-/configure filter ip-filter "pbr-nh-1" entry 20 { action forward next-hop nh-ip address 192.168.40.3 }
+/configure filter ip-filter "pbr-nh-1" filter-id 788
+/configure filter ip-filter "pbr-nh-1" entry 10 match src-ip ip-prefix-list "Core-IP”
+/configure filter ip-filter "pbr-nh-1" entry 10 action forward next-hop nh-ip address 172.19.20.3
+/configure filter ip-filter "pbr-nh-1" entry 20 match dst-ip ip-prefix-list “Core-IP"
+/configure filter ip-filter "pbr-nh-1" entry 20 action forward next-hop nh-ip indirect true
+/configure filter ip-filter "pbr-nh-1" entry 20 action forward next-hop nh-ip address 192.168.40.3
 
-/configure router "Base" interface "To-Peering-LAN" ingress { filter ip "pbr-nh-1" }
+/configure router "Base" interface "To-Peering-LAN" ingress filter ip "pbr-nh-1"
 ```
 
 # PBR - Policy Based Routing
 
-SR OS-based routers support configuring of IPv4 and IPv6 redirect policies. Redirect policies allow specifying multiple redirect target destinations and defining status check test methods used to validate the ability for a destination to receive redirected traffic.
+SR OS-based routers support configuring of IPv4 and IPv6 redirect policies. Redirect policies allow specifying multiple redirect target destinations and defining status check test methods used to validate the ability for a destination to receive redirected traffic.
 
-For more details on PBR implementation, visit [SR OS PBR Documentation](https://documentation.nokia.com/aces/sr/23-7-1/books/router-configuration/filter-policies-router-configuration.html#ai9exj5xo0
+For more details on PBR implementation, visit [SR OS PBR Documentation](https://documentation.nokia.com/aces/sr/23-10-2/books/router-configuration/filter-policies-router-configuration.html#ai9exj5xo0
 
 ```
- /configure filter redirect-policy "FIREWALL-V4" admin-state enable
- /configure filter redirect-policy "FIREWALL-V4" destination 10.200.200.0 { ping-test }
- /configure filter redirect-policy "FIREWALL-V4" destination 10.200.200.0 { ping-test interval 5 }
- /configure filter redirect-policy "FIREWALL-V4" destination 10.200.200.0 { ping-test drop-count 1 }
+/configure filter redirect-policy "FIREWALL-V4" admin-state enable
+/configure filter redirect-policy "FIREWALL-V4" destination 10.200.200.0 ping-test
+/configure filter redirect-policy "FIREWALL-V4" destination 10.200.200.0 ping-test interval 5
+/configure filter redirect-policy "FIREWALL-V4" destination 10.200.200.0 ping-test drop-count 1
 
- 
- /configure filter ip-filter "ACL_PBR_V4" filter-id 155
- /configure filter ip-filter "ACL_PBR_V4" entry 1000 { match protocol ip }
- /configure filter ip-filter "ACL_PBR_V4" entry 1000 { action forward redirect-policy "FIREWALL-V4" }
+/configure filter ip-filter "ACL_PBR_V4" filter-id 155
+/configure filter ip-filter "ACL_PBR_V4" entry 1000 match protocol ip
+/configure filter ip-filter "ACL_PBR_V4" entry 1000 action forward redirect-policy "FIREWALL-V4"
 ```
 
 The filter is then applied to the interface.
 
 ```
-/configure router "Base" interface "To-Peering-LAN" ingress { filter ip "ACL_PBR_V4" }
+/configure router "Base" interface "To-Peering-LAN" ingress filter ip "ACL_PBR_V4"
 ```
 
 # QoS
 
 SR OS implements QoS with a 4-step process – Classification, Queueing, Scheduling and (Re)Marking.
 
-For more details on QoS implementation, visit [SR OS QoS Documentation](https://documentation.nokia.com/aces/sr/23-7-1/titles/qos.html).
+For more details on QoS implementation, visit [SR OS QoS Documentation](https://documentation.nokia.com/aces/sr/23-10-2/titles/qos.html).
 
 ## QoS - Classification
 
@@ -891,19 +990,19 @@ This example shows packet classisication using DSCP, EXP, Protocol and Destinati
 ```
 /configure qos match-list ip-prefix-list “Peering-Core” prefix 10.10.10.0/24
 /configure qos network "Peering-Ingress-QoS" policy-id 10
-/configure qos network "Peering-Ingress-QoS" ingress { dscp be fc be }
-/configure qos network "Peering-Ingress-QoS" ingress { dscp be profile out }
-/configure qos network "Peering-Ingress-QoS" ingress { lsp-exp 6 fc h1 }
-/configure qos network "Peering-Ingress-QoS" ingress { lsp-exp 6 profile in }
-/configure qos network "Peering-Ingress-QoS" ingress { ip-criteria entry 10 match protocol tcp }
-/configure qos network "Peering-Ingress-QoS" ingress { ip-criteria entry 10 match dst-ip ip-prefix-list "Peering-Core" }
-/configure qos network "Peering-Ingress-QoS" ingress { ip-criteria entry 10 action fc ef }
+/configure qos network "Peering-Ingress-QoS" ingress dscp be fc be
+/configure qos network "Peering-Ingress-QoS" ingress dscp be profile out
+/configure qos network "Peering-Ingress-QoS" ingress lsp-exp 6 fc h1
+/configure qos network "Peering-Ingress-QoS" ingress lsp-exp 6 profile in
+/configure qos network "Peering-Ingress-QoS" ingress ip-criteria entry 10 match protocol tcp
+/configure qos network "Peering-Ingress-QoS" ingress ip-criteria entry 10 match dst-ip ip-prefix-list "Peering-Core" }
+/configure qos network "Peering-Ingress-QoS" ingress ip-criteria entry 10 action fc ef
 ```
 
 The classification policy is applied to the interface.
 
 ```
-/configure router "Base" interface "To-Peering-LAN" qos { network-policy "Peering-Ingress-QoS" }
+/configure router "Base" interface "To-Peering-LAN" qos network-policy "Peering-Ingress-QoS"
 ```
 
 ## QoS - Queuing
@@ -911,27 +1010,27 @@ The classification policy is applied to the interface.
 In this configuration example, we are defining 4 queues.
 
 ```
-/configure qos network-queue "Peering-Queue" fc be { queue 1 }
-/configure qos network-queue "Peering-Queue" fc ef { queue 6 }
-/configure qos network-queue "Peering-Queue" fc h1 { queue 7 }
-/configure qos network-queue "Peering-Queue" fc nc { queue 8 }
-/configure qos network-queue "Peering-Queue" queue 1 { mbs 50.0 }
-/configure qos network-queue "Peering-Queue" queue 1 { rate pir 90 }
-/configure qos network-queue "Peering-Queue" queue 1 { rate cir 10 }
-/configure qos network-queue "Peering-Queue" queue 6 { cbs 70.0 }
-/configure qos network-queue "Peering-Queue" queue 6 { mbs 100.0 }
-/configure qos network-queue "Peering-Queue" queue 6 { rate pir 100 }
-/configure qos network-queue "Peering-Queue" queue 6 { rate cir 100 }
-/configure qos network-queue "Peering-Queue" queue 7 { rate pir 100 }
-/configure qos network-queue "Peering-Queue" queue 7 { rate cir 100 }
-/configure qos network-queue "Peering-Queue" queue 8 { rate pir 10 }
-/configure qos network-queue "Peering-Queue" queue 8 { rate cir 10 }
+/configure qos network-queue "Peering-Queue" fc be queue 1
+/configure qos network-queue "Peering-Queue" fc ef queue 6
+/configure qos network-queue "Peering-Queue" fc h1 queue 7
+/configure qos network-queue "Peering-Queue" fc nc queue 8
+/configure qos network-queue "Peering-Queue" queue 1 mbs 50.0
+/configure qos network-queue "Peering-Queue" queue 1 rate pir 90
+/configure qos network-queue "Peering-Queue" queue 1 rate cir 10
+/configure qos network-queue "Peering-Queue" queue 6 cbs 70.0
+/configure qos network-queue "Peering-Queue" queue 6 mbs 100.0
+/configure qos network-queue "Peering-Queue" queue 6 rate pir 100
+/configure qos network-queue "Peering-Queue" queue 6 rate cir 100
+/configure qos network-queue "Peering-Queue" queue 7 rate pir 100
+/configure qos network-queue "Peering-Queue" queue 7 rate cir 100
+/configure qos network-queue "Peering-Queue" queue 8 rate pir 10
+/configure qos network-queue "Peering-Queue" queue 8 rate cir 10
 ```
 
 The queuing policy is applied under the FP context of the line card.
 
 ```
-/configure card 1 fp 1 { ingress network queue-policy "Peering-Queue" }
+/configure card 1 fp 1 ingress network queue-policy "Peering-Queue"
 ```
 
 ## QoS - Scheduling
@@ -940,20 +1039,20 @@ The example shows a simple port-based scheduler which typically meets the requir
 
 ```
 /configure qos port-scheduler-policy "Peer-Scheduler" max-rate 100000000
-/configure qos port-scheduler-policy "Peer-Scheduler" level 1 { rate pir 90 }
-/configure qos port-scheduler-policy "Peer-Scheduler" level 1 { rate cir 10 }
-/configure qos port-scheduler-policy "Peer-Scheduler" level 6 { rate pir max }
-/configure qos port-scheduler-policy "Peer-Scheduler" level 6 { rate cir max }
-/configure qos port-scheduler-policy "Peer-Scheduler" level 7 { rate pir max }
-/configure qos port-scheduler-policy "Peer-Scheduler" level 7 { rate cir max }
-/configure qos port-scheduler-policy "Peer-Scheduler" level 8 { rate pir max }
-/configure qos port-scheduler-policy "Peer-Scheduler" level 8 { rate cir max }
+/configure qos port-scheduler-policy "Peer-Scheduler" level 1 rate pir 90
+/configure qos port-scheduler-policy "Peer-Scheduler" level 1 rate cir 10
+/configure qos port-scheduler-policy "Peer-Scheduler" level 6 rate pir max
+/configure qos port-scheduler-policy "Peer-Scheduler" level 6 rate cir max
+/configure qos port-scheduler-policy "Peer-Scheduler" level 7 rate pir max
+/configure qos port-scheduler-policy "Peer-Scheduler" level 7 rate cir max
+/configure qos port-scheduler-policy "Peer-Scheduler" level 8 rate pir max
+/configure qos port-scheduler-policy "Peer-Scheduler" level 8 rate cir max
 ```
 
 The port based scheduler policy is applied to the physical port.
 
 ```
-/configure port 1/1/c1/1 ethernet { egress port-scheduler-policy policy-name "Peer-Scheduler" }
+/configure port 1/1/c1/1 ethernet egress port-scheduler-policy policy-name "Peer-Scheduler"
 ```
 
 ## Qos - Remarking
@@ -963,16 +1062,16 @@ Re-marking configuration is done inside the same policy as classification and is
 In this example, we are re-marking DSCP and EXP.
 
 ```
-/configure qos network "Peering-Ingress-QoS" egress { fc be lsp-exp-in-profile 0 }
-/configure qos network "Peering-Ingress-QoS" egress { fc be lsp-exp-out-profile 0 }
-/configure qos network "Peering-Ingress-QoS" egress { fc ef dscp-in-profile af41 }
-/configure qos network "Peering-Ingress-QoS" egress { fc h1 lsp-exp-in-profile 6 }
+/configure qos network "Peering-Ingress-QoS" egress fc be lsp-exp-in-profile 0
+/configure qos network "Peering-Ingress-QoS" egress fc be lsp-exp-out-profile 0
+/configure qos network "Peering-Ingress-QoS" egress fc ef dscp-in-profile af41
+/configure qos network "Peering-Ingress-QoS" egress fc h1 lsp-exp-in-profile 6
 ```
 
 The classification & re-marking policy is applied under the interface.
 
 ```
-/configure router "Base" interface "To-Peering-LAN" qos { network-policy "Peering-Ingress-QoS" }
+/configure router "Base" interface "To-Peering-LAN" qos network-policy "Peering-Ingress-QoS"
 ```
 
 # NTP
@@ -980,12 +1079,12 @@ The classification & re-marking policy is applied under the interface.
 In order to provide a complete router configuration, we will also show below the NTP configuration in SR OS.
 
 ```
-/configure system { time ntp admin-state enable }
-/configure system { time ntp server 172.16.1.10 router-instance "Base" key-id 5 }
-/configure system { time ntp server 172.16.1.10 router-instance "Base" prefer true }
-/configure system { time ntp server 172.18.2.20 router-instance "Base" key-id 5 }
-/configure system { time ntp authentication-key 5 key "keyvalue" }
-/configure system { time ntp authentication-key 5 type message-digest }
+/configure system time ntp admin-state enable
+/configure system time ntp server 172.16.1.10 router-instance "Base" key-id 5
+/configure system time ntp server 172.16.1.10 router-instance "Base" prefer true
+/configure system time ntp server 172.18.2.20 router-instance "Base" key-id 5
+/configure system time ntp authentication-key 5 key "keyvalue"
+/configure system time ntp authentication-key 5 type message-digest
 ```
 
 The status of NTP can be seen using the `show system ntp all` command.
@@ -995,16 +1094,16 @@ The status of NTP can be seen using the `show system ntp all` command.
 SR OS has default log-id 99 for all events and log-id 100 for events with severity Major and above. These logs can be read using the `show log log-id <id>` command.
 User defined logs can be created as shown below. Log destination options are File, Memory, Console, SNMP, Netconf or Syslog.
 
-For more details on logging, visit [SR OS Log Documentation](https://documentation.nokia.com/aces/sr/23-7-1/books/system-management/event-account-logs.html).
+For more details on logging, visit [SR OS Log Documentation](https://documentation.nokia.com/aces/sr/23-10-2/books/system-management/event-account-logs.html).
 
 A user defined log can be created as below:
 
 ```
 /configure log log-id "33" admin-state enable
-/configure log log-id "33" source { main true }
-/configure log log-id "33" source { security true }
-/configure log log-id "33" source { change true }
-/configure log log-id "33" destination { memory max-entries 500 }
+/configure log log-id "33" source main true
+/configure log log-id "33" source security true
+/configure log log-id "33" source change true
+/configure log log-id "33" destination memory max-entries 500
 ```
 
 A syslog destination can be configured as below:
@@ -1014,10 +1113,10 @@ A syslog destination can be configured as below:
 /configure log syslog "Syslog-server-1" port 514
 
 /configure log log-id "To-syslog" admin-state enable
-/configure log log-id "To-syslog" source { main true }
-/configure log log-id "To-syslog" source { security true }
-/configure log log-id "To-syslog" source { change true }
-/configure log log-id "To-syslog" destination { syslog "Syslog-server-1" }
+/configure log log-id "To-syslog" source main true
+/configure log log-id "To-syslog" source security true
+/configure log log-id "To-syslog" source change true
+/configure log log-id "To-syslog" destination syslog "Syslog-server-1"
 ```
 
 The status of all log IDs can be using the `show log log-id` command.
@@ -1032,23 +1131,23 @@ Memory usage can be monitored using the `show system memory-pools` command.
 
 SR OS supports the creation of configuration templates called configuration groups which can be applied at different branches in the configuration using the apply-groups command. To view the expanded configuration, use the `info inherirance` command under the branch context.
 
-For more details on Config groups, visit [SR OS Configuration Groups Documentation](https://documentation.nokia.com/sr/23-7-1/books/7x50-shared/md-cli-user/edit-configuration.html#unique_469766673).
+For more details on Config groups, visit [SR OS Configuration Groups Documentation](https://documentation.nokia.com/sr/23-10-2/books/7x50-shared/md-cli-user/edit-configuration.html#unique_469766673).
 
 In this example, we are creating an IS-IS configuration group for authentication and metric.
 
 ```
-/configure groups group "Peer-isis" router "Base" isis 0 { interface "<Interface-to-AS.*>" }
-/configure groups group "Peer-isis" router "Base" isis 0 { interface "<Interface-to-AS.*>" hello-authentication-key "mykey" }
-/configure groups group "Peer-isis" router "Base" isis 0 { interface "<Interface-to-AS.*>" hello-authentication-type message-digest }
-/configure groups group "Peer-isis" router "Base" isis 0 { interface "<Interface-to-AS.*>" interface-type point-to-point }
-/configure groups group "Peer-isis" router "Base" isis 0 { interface "<Interface-to-AS.*>" level 2 metric 10 }
+/configure groups group "Peer-isis" router "Base" isis 0 interface "<Interface-to-AS.*>"
+/configure groups group "Peer-isis" router "Base" isis 0 interface "<Interface-to-AS.*>" hello-authentication-key "mykey"
+/configure groups group "Peer-isis" router "Base" isis 0 interface "<Interface-to-AS.*>" hello-authentication-type message-digest
+/configure groups group "Peer-isis" router "Base" isis 0 interface "<Interface-to-AS.*>" interface-type point-to-point
+/configure groups group "Peer-isis" router "Base" isis 0 interface "<Interface-to-AS.*>" level 2 metric 10
 ```
 
 The configuration group can be applied to an IS-IS interface:
 
 ```
-/configure router "Base" { interface "Interface-to-AS65501" }
-/configure router "Base" isis 0 interface "Interface-to-AS65501" { apply-groups ["Peer-isis"] }
+/configure router "Base" interface "Interface-to-AS65501"
+/configure router "Base" isis 0 interface "Interface-to-AS65501" apply-groups ["Peer-isis"]
 ```
 
 The group inherited configuration can be viewed from the interface context:
@@ -1073,24 +1172,23 @@ A:admin@sr101# info inheritance
 
 Custom python applications can be written to run on a SR OS node that implements a MicroPython interpreter (version 3.4). One example of an application is a custom CLI command. The below sample configuration shows how to configure a python script get_all_interfaces.py (that will show all VRF interfaces and in/out packets in one output) to be used as a CLI command. For sample python scripts, visit [Nokia pySR OS GitHub](https://github.com/nokia/pySR OS).
 
-For more details on pySR OS configuration, visit [SR OS pySR OS Documentation](https://documentation.nokia.com/aces/sr/23-7-1/books/system-management/python.html).
+For more details on pySR OS configuration, visit [SR OS pySR OS Documentation](https://documentation.nokia.com/aces/sr/23-10-2/books/system-management/python.html).
 
-Also vist the [pySR OS API guide](https://documentation.nokia.com/sr/22-10-3/pySR OS/index.html).
+Also vist the [pySR OS API guide](https://documentation.nokia.com/sr/23-10-2/pysros/index.html).
 
-The below example shows a custom CLI command to list all interfaces of all VPRNs along with their In/Out packet counters in a table format. The script is available in [Nokia pySR OS GitHub Examples](https://github.com/nokia/pySR OS/blob/main/examples/get_all_vprn_interfaces.py).
+The below example shows a custom CLI command to list all interfaces of all VPRNs along with their In/Out packet counters in a table format. The script is available in [Nokia pySR OS GitHub Examples](https://github.com/nokia/pySROS/blob/main/examples/get_all_vprn_interfaces.py).
 
 The script is copied over to the CF3 directory.
 
 ```
-/configure python python-script "get_all_interfaces" { admin-state enable }
-/configure python python-script "get_all_interfaces" { urls ["cf3:\get_all_interfaces.py"] }
-/configure python python-script "get_all_interfaces" { version python3 }
+/configure python python-script "get_all_interfaces" admin-state enable
+/configure python python-script "get_all_interfaces" urls ["cf3:\get_all_interfaces.py"]
+/configure python python-script "get_all_interfaces" version python3
 
-/configure system management-interface cli md-cli environment command-alias { alias "all-interfaces" }
-/configure system management-interface cli md-cli environment command-alias { alias "all-interfaces" admin-state enable }
-/configure system management-interface cli md-cli environment command-alias { alias "all-interfaces" description "show all VRF interfaces" }
-/configure system management-interface cli md-cli environment command-alias { alias "all-interfaces" python-script "get_all_interfaces" }
-/configure system management-interface cli md-cli environment command-alias { alias "all-interfaces" mount-point "/show" }
+/configure system management-interface cli md-cli environment command-alias alias "all-interfaces" admin-state enable
+/configure system management-interface cli md-cli environment command-alias alias "all-interfaces" description "show all VRF interfaces"
+/configure system management-interface cli md-cli environment command-alias alias "all-interfaces" python-script "get_all_interfaces"
+/configure system management-interface cli md-cli environment command-alias alias "all-interfaces" mount-point "/show"
 ```
 
 After committing the changes, logout and login again to run the custom CLI command.
