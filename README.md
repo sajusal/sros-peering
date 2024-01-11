@@ -170,7 +170,7 @@ Interfaces : 2
 
 ```
 
-BFD can be enabled under the interface for both IPv4 and IPv6. In SR OS, BFD is enabled once under the interface along with the timers and is the state is shared with different protocols running over that interface by enabling `bfd-liveness` under each protocol's context.
+BFD can be enabled under the interface for both IPv4 and IPv6. In SR OS, BFD is enabled once under the interface along with the timers and the state is shared with different protocols running over that interface by enabling `bfd-liveness` under each protocol's context.
 
 ```
 /configure router "Base" interface "Interface-to-R1" ipv4 bfd admin-state enable
